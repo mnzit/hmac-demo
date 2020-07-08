@@ -79,11 +79,11 @@ public class HmacRequestValidator {
 
                 serverResponse.setObject(authorizationParameter);
             } else {
-                throw new RuntimeException("Error: X-Authorization-Timestamp is too far in the future.");
+                throw new RuntimeException("Error: X-Authorization-Timestamp format is not correct");
             }
 
         } else {
-            throw new RuntimeException("Error: X-Authorization-Timestamp is too far in the past.");
+            throw new RuntimeException("Error: X-Authorization format is not correct");
         }
 
         return serverResponse.build(serverResponse, true);
@@ -100,11 +100,11 @@ public class HmacRequestValidator {
         long unixCurrent = System.currentTimeMillis() / 1000L;
         if (unixTimestamp > unixCurrent + tolerance) {
 
-            new RuntimeException("Authorization Timestamp is in the future!");
+            new RuntimeException("Error: X-Authorization-Timestamp is too far in the future.");
 
         } else if (unixTimestamp < unixCurrent - tolerance) {
 
-            new RuntimeException("Authorization Timestamp is in the past!");
+            new RuntimeException("Error: X-Authorization-Timestamp is too far in the past.");
 
         } else {
 
