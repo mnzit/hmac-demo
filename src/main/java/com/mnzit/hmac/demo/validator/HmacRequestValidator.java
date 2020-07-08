@@ -58,7 +58,7 @@ public class HmacRequestValidator {
         if ((hmacRequestDTO.getAuthorizationHeader() != null && hmacRequestDTO.getAuthorizationHeader().trim().length() > 0) && (hmacRequestDTO.getAuthorizationTimeStamp() != null && hmacRequestDTO.getAuthorizationTimeStamp().trim().length() > 0)) {
             serverResponse = serverResponse.build(serverResponse, true);
         }
-        throw new RuntimeException("Authentication Header or Authentication is not found.");
+        throw new RuntimeException("Error: Authentication Header or Authentication is not found.");
     }
 
     private ServerResponse validateHeaderPattern(ServerResponse serverResponse) {
@@ -128,7 +128,7 @@ public class HmacRequestValidator {
 
         if (!signatureBuilder.isHashEquals(authorizationParameter.getSignature().getBytes())) {
 
-            new RuntimeException("Invalid authorization data.");
+            new RuntimeException("Error: Invalid authorization data.");
         }
 
         return serverResponse;

@@ -114,14 +114,14 @@ public class SignatureBuilder {
 
             final byte[] signatureBytes = digest.doFinal();
             digest.reset();
-            return signatureBytes;
+            return EncodingUtil.toHexString(signatureBytes).getBytes(StandardCharsets.UTF_8);
 
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Can't create signature: " + e.getMessage(), e);
+            throw new RuntimeException("Can't create signature: {}, {}" + e.getMessage(), e);
         } catch (InvalidKeyException ex) {
-            log.error("Invalid Key Exception");
+            log.error("Invalid Key Exception : {}, {}", ex.getMessage());
         } catch (Exception ex) {
-            log.error("Exception: {}", ex.getMessage());
+            log.error("Exception: {}, {}", ex.getMessage());
         }
 
         return null;
