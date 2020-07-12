@@ -16,12 +16,9 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class HmacRequestDTO extends BaseClass{
+public class HmacResponseDTO extends BaseClass {
 
     private String authorizationHeader;
     private String authorizationTimeStamp;
-    private String contentType;
-    private String method;
-    private String path;
     private String payload;
 }

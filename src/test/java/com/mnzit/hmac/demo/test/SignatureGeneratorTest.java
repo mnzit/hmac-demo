@@ -2,6 +2,8 @@ package com.mnzit.hmac.demo.test;
 
 import com.mnzit.hmac.demo.util.SignatureBuilder;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -28,10 +30,16 @@ public class SignatureGeneratorTest {
     }
 
     @Test
-    public void generateSignature() {
+    public void generateSignature() throws URISyntaxException {
         String uuid = UUID.randomUUID().toString();
         String unixTime = String.valueOf(System.currentTimeMillis() / 1000L);
         String applicationUserId = "Manjit";
+        String path = "/login?name=manjit&age=10";
+        URI uri = new URI(path);
+
+        String query = uri.getRawQuery();
+        
+        log.debug("query : {}",query);
 
         SignatureBuilder signatureBuilder = new SignatureBuilder()
                 .method("POST")

@@ -78,13 +78,13 @@ public class SignatureBuilder extends BaseClass {
     }
 
     /**
-     * Signature: [method|contentType|username|nonce|timestamp|SHA256(body)]
+     * Signature: |method|path|contentType|username|nonce|timestamp|body|
      *
      * @return
      */
-    public byte[] buildSignature() {
+    public byte[] buildRequestSignature() {
         Objects.requireNonNull(method, "method");
-        Objects.requireNonNull(path, "resource");
+        Objects.requireNonNull(path, "path");
         Objects.requireNonNull(contentType, "contenttype");
         Objects.requireNonNull(username, "username");
         Objects.requireNonNull(nonce, "nonce");
@@ -148,13 +148,65 @@ public class SignatureBuilder extends BaseClass {
 
         return null;
     }
+    
+     /**
+     * Signature: |nonce|timestamp|body|
+     *
+     * @return
+     */
+    public byte[] buildResponseSignature() {
+        Objects.requireNonNull(nonce, "nonce");
+        Objects.requireNonNull(timestamp, "timestamp");
+        Objects.requireNonNull(body, "body");
+
+        log.debug("=========Signature Elements begin=========");
+        log.debug("nonce : {}", nonce);
+        log.debug("timestamp : {}", timestamp);
+        log.debug("body : {}", body);
+        log.debug("secretKey : {}", apiSecret);
+        log.debug("=========Signature Elements end===========");
+
+        try {
+            final Mac digest = Mac.getInstance(algorithm);
+            SecretKeySpec secretKey = new SecretKeySpec(apiSecret.getBytes(StandardCharsets.UTF_8), algorithm);
+            digest.init(secretKey);
+
+            digest.update(DELIMITER);
+            digest.update(nonce.getBytes(StandardCharsets.UTF_8));
+
+            digest.update(DELIMITER);
+            digest.update(timestamp.getBytes(StandardCharsets.UTF_8));
+
+            digest.update(DELIMITER);
+            digest.update(
+                    SHA256Util.getSHA256Hash(
+                            body.getBytes(StandardCharsets.UTF_8))
+                            .getBytes(StandardCharsets.UTF_8));
+
+            digest.update(DELIMITER);
+
+            final byte[] signatureBytes = digest.doFinal();
+            digest.reset();
+
+            return EncodingUtil.toHexString(signatureBytes).getBytes(StandardCharsets.UTF_8);
+
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Can't create signature: {}, {}" + e.getMessage(), e);
+        } catch (InvalidKeyException ex) {
+            log.error("Invalid Key Exception : {}, {}", ex.getMessage());
+        } catch (Exception ex) {
+            log.error("Exception: {}, {}", ex.getMessage());
+        }
+
+        return null;
+    }
 
     public String buildSignatureBase64Encoded() {
-        return EncodingUtil.toBase64String(buildSignature());
+        return EncodingUtil.toBase64String(buildRequestSignature());
     }
 
     public String buildSignatureHexEncoded() {
-        return EncodingUtil.toHexString(buildSignature());
+        return EncodingUtil.toHexString(buildRequestSignature());
     }
 
     public boolean isHashEquals(String expectedSignature) {
