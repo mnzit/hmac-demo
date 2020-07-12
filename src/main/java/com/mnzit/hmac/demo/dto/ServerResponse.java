@@ -1,6 +1,5 @@
 package com.mnzit.hmac.demo.dto;
 
-import java.io.Serializable;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,11 +9,14 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class ServerResponse implements Serializable {
+public class ServerResponse extends BaseClass {
 
     private Boolean success;
     private String description;
     private Object object;
+
+    public ServerResponse() {
+    }
 
     public ServerResponse(Boolean success, String description) {
         this.success = success;

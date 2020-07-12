@@ -22,5 +22,6 @@ public class HmacRequestDTO implements Serializable {
     private String authorizationTimeStamp;
     private String contentType;
     private String method;
-    private byte[] payload;
+    private String path;
+    private String payload;
 }

@@ -1,8 +1,8 @@
 package com.mnzit.hmac.demo.util;
 
+import com.mnzit.hmac.demo.dto.BaseClass;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.Objects;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -14,15 +14,15 @@ import lombok.extern.slf4j.Slf4j;
  * @author Manjit Shakya <mnzitshakya@gmail.com>
  */
 @Slf4j
-public class SignatureBuilder {
+public class SignatureBuilder extends BaseClass {
 
     private static final String HMAC_SHA_512 = "HmacSHA512";
     private String algorithm = HMAC_SHA_512;
-    private byte[] apiSecret;
-    private byte[] body;
+    private String apiSecret;
+    private String body;
     private static final byte DELIMITER = '|';
     private String contentType;
-    private String resource;
+    private String path;
     private String timestamp;
     private String nonce;
     private String username;
@@ -37,12 +37,12 @@ public class SignatureBuilder {
         return this;
     }
 
-    public SignatureBuilder resource(String resource) {
-        this.resource = resource;
+    public SignatureBuilder path(String path) {
+        this.path = path;
         return this;
     }
 
-    public SignatureBuilder secret(byte[] apiSecret) {
+    public SignatureBuilder secret(String apiSecret) {
         this.apiSecret = apiSecret;
         return this;
     }
@@ -67,7 +67,7 @@ public class SignatureBuilder {
         return this;
     }
 
-    public SignatureBuilder body(byte[] body) {
+    public SignatureBuilder body(String body) {
         this.body = body;
         return this;
     }
@@ -84,36 +84,58 @@ public class SignatureBuilder {
      */
     public byte[] buildSignature() {
         Objects.requireNonNull(method, "method");
+        Objects.requireNonNull(path, "resource");
+        Objects.requireNonNull(contentType, "contenttype");
         Objects.requireNonNull(username, "username");
-        Objects.requireNonNull(resource, "resource");
         Objects.requireNonNull(nonce, "nonce");
         Objects.requireNonNull(timestamp, "timestamp");
+        Objects.requireNonNull(body, "body");
+
+        log.debug("=========Signature Elements begin=========");
+        log.debug("method : {}", method);
+        log.debug("path : {}", path);
+        log.debug("contentType : {}", contentType);
+        log.debug("username : {}", username);
+        log.debug("nonce : {}", nonce);
+        log.debug("timestamp : {}", timestamp);
+        log.debug("body : {}", body);
+        log.debug("secretKey : {}", apiSecret);
+        log.debug("=========Signature Elements end===========");
 
         try {
             final Mac digest = Mac.getInstance(algorithm);
-            SecretKeySpec secretKey = new SecretKeySpec(apiSecret, algorithm);
+            SecretKeySpec secretKey = new SecretKeySpec(apiSecret.getBytes(StandardCharsets.UTF_8), algorithm);
             digest.init(secretKey);
+
             digest.update(DELIMITER);
             digest.update(method.getBytes(StandardCharsets.UTF_8));
+
+            digest.update(path.getBytes(StandardCharsets.UTF_8));
             digest.update(DELIMITER);
-            if (contentType != null && !contentType.isEmpty()) {
-                digest.update(DELIMITER);
-                digest.update(contentType.getBytes(StandardCharsets.UTF_8));
-            }
+
+            digest.update(DELIMITER);
+            digest.update(contentType.getBytes(StandardCharsets.UTF_8));
+
             digest.update(DELIMITER);
             digest.update(username.getBytes(StandardCharsets.UTF_8));
+
             digest.update(DELIMITER);
             digest.update(nonce.getBytes(StandardCharsets.UTF_8));
+
             digest.update(DELIMITER);
             digest.update(timestamp.getBytes(StandardCharsets.UTF_8));
+
             digest.update(DELIMITER);
-            digest.update(resource.getBytes(StandardCharsets.UTF_8));
-            digest.update(DELIMITER);
-            digest.update(EncodingUtil.toBase64String(SHA256Util.getSHA256Hash(body)).getBytes(StandardCharsets.UTF_8));
+            digest.update(
+                    SHA256Util.getSHA256Hash(
+                            body.getBytes(StandardCharsets.UTF_8))
+                            .getBytes(StandardCharsets.UTF_8));
+
             digest.update(DELIMITER);
 
             final byte[] signatureBytes = digest.doFinal();
             digest.reset();
+
             return EncodingUtil.toHexString(signatureBytes).getBytes(StandardCharsets.UTF_8);
 
         } catch (NoSuchAlgorithmException e) {
@@ -135,25 +157,7 @@ public class SignatureBuilder {
         return EncodingUtil.toHexString(buildSignature());
     }
 
-    public boolean isHashEquals(byte[] expectedSignature) {
-        String signature = EncodingUtil.toBase64String(buildSignature());
-        log.debug("Signature generated from request : " + signature);
-        log.debug("Expected signature : " + new String(expectedSignature));
-        return signature.equals(new String(expectedSignature));
+    public boolean isHashEquals(String expectedSignature) {
+        return buildSignatureBase64Encoded().equals(expectedSignature);
     }
-
-    @Override
-    public String toString() {
-        return "SignatureBuilder{"
-                + "algorithm='" + algorithm + '\''
-                + ", apiSecret=" + Arrays.toString(apiSecret)
-                + ", body=" + Arrays.toString(body)
-                + ", contentType='" + contentType + '\''
-                + ", timestamp='" + timestamp + '\''
-                + ", nonce='" + nonce + '\''
-                + ", username='" + username + '\''
-                + ", method='" + method + '\''
-                + '}';
-    }
-
 }

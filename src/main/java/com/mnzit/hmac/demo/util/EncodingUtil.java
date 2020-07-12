@@ -14,7 +14,7 @@ public class EncodingUtil {
             for (byte b : bytes) {
                 formatter.format("%02x", b);
             }
-            return formatter.toString();
+            return formatter.toString().toUpperCase();
         } catch (Exception e) {
             throw e;
         }

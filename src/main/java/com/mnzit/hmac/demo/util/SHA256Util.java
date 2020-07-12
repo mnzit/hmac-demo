@@ -1,6 +1,7 @@
 package com.mnzit.hmac.demo.util;
 
 import java.security.MessageDigest;
+import java.util.Base64;
 
 /**
  * @author Manjit Shakya
@@ -8,13 +9,11 @@ import java.security.MessageDigest;
  */
 public class SHA256Util {
 
-    public static byte[] getSHA256Hash(byte[] input) throws Exception {
-        // Static getInstance method is called with hashing SHA
+    public static String getSHA256Hash(byte[] input) throws Exception {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
 
-        // digest() method called
-        // to calculate message digest of an input
-        // and return array of byte
-        return md.digest(input);
+        byte[] hash = md.digest(input);
+
+        return Base64.getEncoder().encodeToString(hash);
     }
 }
